@@ -2,6 +2,7 @@
 title: "Final Project"
 format: gfm
 editor: visual
+warning: false
 ---
 
 ```{r}

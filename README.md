@@ -4,21 +4,6 @@
 library(tidyverse)
 ```
 
-    Warning: package 'ggplot2' was built under R version 4.3.2
-
-    Warning: package 'tidyr' was built under R version 4.3.2
-
-    ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ✔ dplyr     1.1.4     ✔ readr     2.1.4
-    ✔ forcats   1.0.0     ✔ stringr   1.5.1
-    ✔ ggplot2   3.5.0     ✔ tibble    3.2.1
-    ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
-    ✔ purrr     1.0.2     
-    ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ✖ dplyr::filter() masks stats::filter()
-    ✖ dplyr::lag()    masks stats::lag()
-    ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-
 ``` r
 simCorn <- function(overallEffect=0, fertilizerEffect=c(0,0,0), rowEffect=c(0,0,0), colEffect=c(0,0,0),
                     seed=NULL, dist = rnorm, ...) {
@@ -47,15 +32,15 @@ simCorn()
 ```
 
       Fertilizer Row Column      Yield
-    1          A   1      1 -0.1428241
-    2          B   1      2 -1.7162553
-    3          C   1      3  0.3031203
-    4          C   2      1 -0.7560639
-    5          A   2      2  0.6489812
-    6          B   2      3  1.3302248
-    7          B   3      1 -1.3577087
-    8          C   3      2 -0.8679629
-    9          A   3      3 -2.3044579
+    1          A   1      1 -0.9121147
+    2          B   1      2 -0.8740475
+    3          C   1      3  1.4210789
+    4          C   2      1 -0.9134040
+    5          A   2      2  1.7384058
+    6          B   2      3  1.4986609
+    7          B   3      1  0.8706560
+    8          C   3      2  0.4089045
+    9          A   3      3 -1.1744278
 
 ``` r
 simCorn(overallEffect=10,seed=2123,dist=rgamma,shape=2)

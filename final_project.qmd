@@ -1,6 +1,6 @@
 ---
 title: "final_project"
-format: pdf
+format: html
 editor: visual
 ---
 

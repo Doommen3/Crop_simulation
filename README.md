@@ -1,4 +1,4 @@
-# final_project
+# Final Project
 
 ``` r
 library(tidyverse)
@@ -46,16 +46,16 @@ simCorn <- function(overallEffect=0, fertilizerEffect=c(0,0,0), rowEffect=c(0,0,
 simCorn()
 ```
 
-      Fertilizer Row Column        Yield
-    1          A   1      1 -0.733350908
-    2          B   1      2  1.213913151
-    3          C   1      3 -0.854514334
-    4          C   2      1  0.363053709
-    5          A   2      2 -0.003375628
-    6          B   2      3 -0.183920714
-    7          B   3      1  1.175666576
-    8          C   3      2 -0.123113044
-    9          A   3      3  1.149112631
+      Fertilizer Row Column      Yield
+    1          A   1      1 -0.1428241
+    2          B   1      2 -1.7162553
+    3          C   1      3  0.3031203
+    4          C   2      1 -0.7560639
+    5          A   2      2  0.6489812
+    6          B   2      3  1.3302248
+    7          B   3      1 -1.3577087
+    8          C   3      2 -0.8679629
+    9          A   3      3 -2.3044579
 
 ``` r
 simCorn(overallEffect=10,seed=2123,dist=rgamma,shape=2)

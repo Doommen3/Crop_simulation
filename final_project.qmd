@@ -1,5 +1,5 @@
 ---
-title: "final_project"
+title: "Final Project"
 format: gfm
 editor: visual
 ---

@@ -1,6 +1,6 @@
 ---
 title: "final_project"
-format: html
+format: gfm
 editor: visual
 ---
 

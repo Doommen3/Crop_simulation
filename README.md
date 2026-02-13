@@ -1,216 +1,139 @@
-# Final Project
+# Crop Simulation Project: Fertilizer Effects in a 3x3 Field Design
 
-``` r
-library(tidyverse)
+## Project Overview
+This project builds and tests a simulation framework for corn yield experiments using R. The core idea is to generate synthetic yield data for a blocked 3x3 field layout, then evaluate fertilizer effects with ANOVA across repeated simulation runs.
+
+The work combines:
+- custom data simulation (`simCorn`)
+- linear modeling (`lm`)
+- ANOVA-based hypothesis testing
+- repeated Monte Carlo scenarios
+- visualization of p-value distributions
+- reproducible reporting through Quarto
+
+## What the Project Accomplished
+1. Created a reusable simulation function for a 3x3 experimental layout with fertilizer, row, and column effects.
+2. Ran multiple simulation scenarios with different assumptions (normal vs exponential error, different effect vectors, different random seeds).
+3. Fit the same ANOVA model repeatedly (`Yield ~ Fertilizer + Row + Column`) to evaluate fertilizer significance behavior.
+4. Generated histogram-based diagnostics for p-values from each scenario.
+5. Produced rendered outputs in Markdown, HTML, and PDF formats.
+
+## Step-by-Step Walkthrough
+
+### 1. Load dependencies
+The script loads `tidyverse`:
+
+- file: `stat415_final.R`
+- line: `library(tidyverse)`
+
+### 2. Define the simulation engine (`simCorn`)
+`simCorn(...)` is the core function. It:
+1. validates the seed input
+2. creates error terms from a user-selected distribution (`dist`)
+3. builds a fixed 9-plot field structure with factors:
+   - `Fertilizer` (A/B/C)
+   - `Row` (1/2/3)
+   - `Column` (1/2/3)
+4. computes yield as:
+
+`Yield = overallEffect + fertilizerEffect + rowEffect + colEffect + error`
+
+5. returns a data frame with one row per plot.
+
+This makes it easy to swap assumptions while keeping the same experimental structure.
+
+### 3. Run basic function checks
+The project first runs simple examples of `simCorn`:
+- default normal-error simulation
+- gamma-error simulation with custom shape
+- parameterized simulation with explicit overall, fertilizer, row, and column effects
+
+These examples confirm that the function is flexible and reproducible.
+
+### 4. Build repeated simulation scenarios
+The main analysis creates seven p-value vectors (`p_vector_1` to `p_vector_7`), each with 100 simulated experiments.
+
+For each iteration in each scenario:
+1. generate synthetic data with `simCorn`
+2. fit a linear model: `lm(Yield ~ Fertilizer + Row + Column, data=y)`
+3. extract the fertilizer ANOVA p-value (`anova(fitCorn)$"Pr(>F)"[1]`)
+4. store that p-value in the scenario vector
+
+### 5. Compare scenarios using p-value histograms
+Each scenario is visualized with `hist(...)` on p-values (common breaks from 0 to 1). This provides a quick view of whether p-values are broadly uniform or concentrated near 0.
+
+### 6. Render results
+The Quarto document (`final_project.qmd`) renders to:
+- `final_project.md`
+- `final_project.html`
+- `final_project.pdf`
+
+The plotted figures are stored under `final_project_files/figure-*`.
+
+## Scenario Map (As Implemented)
+
+| Scenario | Error distribution | Effect settings used in code | Notes |
+|---|---|---|---|
+| `p_vector_1` | Normal (`rnorm`) | baseline (`overallEffect=10`, other effects default) | Reference/null-like case |
+| `p_vector_2` | Normal | fertilizer `c(1,2,3)`, row `c(0,0,1)`, col `c(0,0,1)` | Added treatment + mild blocking effects |
+| `p_vector_3` | Normal | fertilizer `c(1,2,3)`, row `c(1,0,1)`, col `c(0,1,1)` | Stronger structure effects |
+| `p_vector_4` | Normal | same parameterization as `p_vector_3` | Seed variation check |
+| `p_vector_5` | Exponential (`rexp`) | fertilizer `c(1,2,3)`, row `c(0,0,1)`, col `c(0,0,1)` | Non-normal error case |
+| `p_vector_6` | Exponential | fertilizer `c(1,2,3)`, row `c(1,0,1)`, col `c(0,1,1)` | Non-normal + structured effects |
+| `p_vector_7` | Exponential | fertilizer `c(1,2,3)`, row `c(0,1,0)`, col `c(0,1,0)` | Loop stores into `p_vector_5` instead of `p_vector_7` |
+
+## Skills Demonstrated
+This project puts the following skills on display:
+
+1. **Simulation design in R**
+   - building a configurable generator function with distribution injection (`dist`) and variadic args (`...`)
+2. **Experimental design thinking**
+   - modeling row/column blocking with treatment factors
+3. **Monte Carlo workflow**
+   - repeated sampling and repeated model fitting across scenarios
+4. **Statistical modeling**
+   - linear models and ANOVA-based p-value extraction
+5. **Reproducibility practices**
+   - explicit use of `set.seed(...)` across scenarios
+6. **Exploratory visualization**
+   - distributional diagnostics through p-value histograms
+7. **Technical reporting**
+   - literate programming via Quarto and multi-format outputs (MD/HTML/PDF)
+
+## Important Notes on Current Code Behavior
+This repository preserves original work. The following points document how the current code behaves:
+
+1. In scenario 7, p-values are assigned to `p_vector_5` rather than `p_vector_7` inside the loop.
+2. Effect vectors (`fertilizerEffect`, `rowEffect`, `colEffect`) are added positionally and recycled by R; they are not mapped by factor level labels.
+
+These notes are for interpretation clarity only; no source code was changed.
+
+## How to Run
+From the project directory:
+
+```bash
+cd /Users/devin/crop_simulation/Crop_simulation
 ```
 
-``` r
-simCorn <- function(overallEffect=0, fertilizerEffect=c(0,0,0), rowEffect=c(0,0,0), colEffect=c(0,0,0),
-                    seed=NULL, dist = rnorm, ...) {
-  
-  
-  if ((!is.numeric(seed)) && (!is.null(seed))) 
-    stop("You did not enter a valid seed")
-  
-  n <- length(fertilizerEffect)^2
+Run the R script:
 
-    set.seed(seed)
-    error <- dist(n, ...)
-    
-    Fertilizer = factor(c("A", "B", "C", "C", "A", "B", "B", "C", "A"))
-    Row = factor(c(1, 1, 1, 2, 2, 2, 3, 3, 3))
-    Column = factor(c(1, 2, 3, 1, 2, 3, 1, 2, 3))
-    Yield = overallEffect + fertilizerEffect + rowEffect + colEffect + error
-    x <- data.frame(Fertilizer, Row, Column, Yield)
-  
-  return (x)
-}
+```bash
+Rscript stat415_final.R
 ```
 
-``` r
-simCorn()
+Render the Quarto report:
+
+```bash
+quarto render final_project.qmd
 ```
 
-      Fertilizer Row Column      Yield
-    1          A   1      1 -0.9121147
-    2          B   1      2 -0.8740475
-    3          C   1      3  1.4210789
-    4          C   2      1 -0.9134040
-    5          A   2      2  1.7384058
-    6          B   2      3  1.4986609
-    7          B   3      1  0.8706560
-    8          C   3      2  0.4089045
-    9          A   3      3 -1.1744278
+## Project Structure
+- `stat415_final.R`: primary R script with simulation, loops, models, and plots.
+- `final_project.qmd`: Quarto source document for the report.
+- `final_project.md`: rendered Markdown report.
+- `final_project.html`: rendered HTML report.
+- `final_project.pdf`: rendered PDF report.
+- `final_project_files/`: figure assets and Quarto library files.
 
-``` r
-simCorn(overallEffect=10,seed=2123,dist=rgamma,shape=2)
-```
-
-      Fertilizer Row Column    Yield
-    1          A   1      1 14.83727
-    2          B   1      2 10.45424
-    3          C   1      3 13.13900
-    4          C   2      1 10.47095
-    5          A   2      2 10.90779
-    6          B   2      3 13.44940
-    7          B   3      1 10.77832
-    8          C   3      2 11.49251
-    9          A   3      3 10.62710
-
-``` r
-mu <- 7
-alpha <- c(1,2,3)
-beta <- c(2,2,1)
-gamma <- c(3,3,2)
-y <- simCorn(overallEffect=mu, fertilizerEffect=alpha, rowEffect=beta, colEffect=gamma,
-             seed=29429, rnorm, mean=3, sd=2)
-y
-```
-
-      Fertilizer Row Column    Yield
-    1          A   1      1 19.97551
-    2          B   1      2 16.08501
-    3          C   1      3 16.82301
-    4          C   2      1 13.00537
-    5          A   2      2 16.31535
-    6          B   2      3 13.89126
-    7          B   3      1 15.24435
-    8          C   3      2 16.98722
-    9          A   3      3 19.10382
-
-``` r
-pValue <- numeric(100)
-p_vector_1 <- vector(mode = "numeric", length = 100)
-set.seed(1331)
-for (k in 1:100) { 
-  
-  y <- simCorn(overallEffect=10, dist=rnorm)
-  fitCorn <- lm(Yield ~ Fertilizer + Row + Column, data=y)
-  pValue[k] <- anova(fitCorn)$"Pr(>F)"[1]
-  p_vector_1[k] <- pValue[k]
-
-}
-
-
-p_vector_2 <- vector(mode = "numeric", length = 100)
-set.seed(18694)
-
-
-for (k in 1:100) { 
-  
-  y <- simCorn(overallEffect=10, c(1,2,3), c(0,0,1), c(0,0,1), dist=rnorm)
-  fitCorn <- lm(Yield ~ Fertilizer + Row + Column, data=y)
-  pValue[k] <- anova(fitCorn)$"Pr(>F)"[1]
-  p_vector_2[k] <- pValue[k]
-  
-}
-
-
-p_vector_3 <- vector(mode = "numeric", length = 100)
-set.seed(6516)
-
-for (k in 1:100) { 
-  
-  y <- simCorn(overallEffect=10, c(1,2,3), c(1,0,1), c(0,1,1), dist=rnorm)
-  fitCorn <- lm(Yield ~ Fertilizer + Row + Column, data=y)
-  pValue[k] <- anova(fitCorn)$"Pr(>F)"[1]
-  p_vector_3[k] <- pValue[k]
-  
-}
-
-
-p_vector_4 <- vector(mode = "numeric", length = 100)
-set.seed(5)
-
-for (k in 1:100) { 
-  
-  y <- simCorn(overallEffect=10, c(1,2,3), c(1,0,1), c(0,1,1), dist=rnorm)
-  fitCorn <- lm(Yield ~ Fertilizer + Row + Column, data=y)
-  pValue[k] <- anova(fitCorn)$"Pr(>F)"[1]
-  p_vector_4[k] <- pValue[k]
-  
-}
-
-
-
-p_vector_5 <- vector(mode = "numeric", length = 100)
-set.seed(574)
-for (k in 1:100) { 
-  
-  y <- simCorn(overallEffect=10, c(1,2,3), c(0,0,1), c(0,0,1), dist=rexp)
-  fitCorn <- lm(Yield ~ Fertilizer + Row + Column, data=y)
-  pValue[k] <- anova(fitCorn)$"Pr(>F)"[1]
-  p_vector_5[k] <- pValue[k]
-  
-}
-
-
-
-p_vector_6 <- vector(mode = "numeric", length = 100)
-set.seed(9576)
-
-for (k in 1:100) { 
-  
-  y <- simCorn(overallEffect=10, c(1,2,3), c(1,0,1), c(0,1,1), dist=rexp)
-  fitCorn <- lm(Yield ~ Fertilizer + Row + Column, data=y)
-  pValue[k] <- anova(fitCorn)$"Pr(>F)"[1]
-  p_vector_6[k] <- pValue[k]
-  
-}
-
-
-p_vector_7 <- vector(mode = "numeric", length = 100)
-set.seed(9743)
-
-
-for (k in 1:100) { 
-  
-  y <- simCorn(overallEffect=10, c(1,2,3), c(0,1,0), c(0,1,0), dist=rexp)
-  fitCorn <- lm(Yield ~ Fertilizer + Row + Column, data=y)
-  pValue[k] <- anova(fitCorn)$"Pr(>F)"[1]
-  p_vector_5[k] <- pValue[k]
-  
-}
-```
-
-``` r
-hist(p_vector_1, breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), col = "blue", )
-```
-
-![](final_project_files/figure-commonmark/unnamed-chunk-7-1.png)
-
-``` r
-hist(p_vector_2, breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), col = "blue", )
-```
-
-![](final_project_files/figure-commonmark/unnamed-chunk-7-2.png)
-
-``` r
-hist(p_vector_3, breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), col = "blue", )
-```
-
-![](final_project_files/figure-commonmark/unnamed-chunk-7-3.png)
-
-``` r
-hist(p_vector_4, breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), col = "blue", )
-```
-
-![](final_project_files/figure-commonmark/unnamed-chunk-7-4.png)
-
-``` r
-hist(p_vector_5, breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), col = "blue", )
-```
-
-![](final_project_files/figure-commonmark/unnamed-chunk-7-5.png)
-
-``` r
-hist(p_vector_6, breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), col = "blue", )
-```
-
-![](final_project_files/figure-commonmark/unnamed-chunk-7-6.png)
-
-``` r
-hist(p_vector_7, breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), col = "blue", )
-```
-
-![](final_project_files/figure-commonmark/unnamed-chunk-7-7.png)
+## Summary
+The project successfully demonstrates a full simulation-to-inference workflow for a blocked fertilizer experiment in R, including function engineering, repeated ANOVA evaluation, visual diagnostics, and publishable reporting artifacts.
